@@ -1,0 +1,15 @@
+<?php
+/**
+ * Twitter config class
+ * 1. Make a copy of this file and name it 'twitter.php'
+ * 2. Update the values below with your account credentials (http://dev.twitter.com/apps)
+ */
+class TWITTER_CONFIG {
+	var $twitter = array(
+		'datasource'         => 'twitter_oauth',
+		'consumer_key'       => '',
+		'consumer_secret'    => '',
+		'oauth_token'        => '',
+		'oauth_token_secret' => ''
+	);
+}

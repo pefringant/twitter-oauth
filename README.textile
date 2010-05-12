@@ -1,0 +1,94 @@
+h1. Twitter plugin for CakePHP 1.3+ with OAuth
+
+CakePHP plugin to interact with a Twitter account. For example, it allows you to post a new status on Twitter after a Model::save(), on create, update, or both. Now connect via OAuth as from June 30, 2010 the basic authentification on the api will be forbidden.
+
+h2. 1. Installation
+
+To install, run the following command from your APP/plugins folder:
+
+<pre><code>git clone git://github.com/kalt/twitter-oauth.git twitter</code></pre>
+
+The plugin includes a new Twitter DataSource based on the great work from Michael "MiDri" Riddle, Daniel Hofstetter and Alexandru Ciobanu.
+
+h2. 2. Setup
+
+h3. 2.1. Twitter account credentials
+
+Go to dev.twitter.com, sign in and click "register an app". Now define the app parameters, mainly:
+* Application Type: Browser
+* Default Access type: Read & Write
+
+Once the app is registered, duplicate the following file:
+
+<pre><code>APP/plugins/twitter/config/twitter.default</code></pre>
+
+and rename it to 'twitter.php'. Open it and fill the credentials with yours:
+
+<pre><code>class TWITTER_CONFIG {
+	var $twitter = array(
+		'datasource'         => 'twitter_oauth',
+		'consumer_key'       => '',
+		'consumer_secret'    => '',
+		'oauth_token'        => '',
+		'oauth_token_secret' => ''
+	);
+}</code></pre>
+
+The consumer key and secret can be found on the page "Application details", and the oauth_token and oauth_token_secret can be found on the page "My Access Token", linked on the right panel.
+
+h3. 2.2. Attach to Model
+
+The plugin includes a Behavior that can be attached to any Model. The only configuration needed is when do you want to post a new status on Twitter : on create, on update, or both.
+
+<pre><code>class Post extends AppModel {
+	var $actsAs = array('Twitter.Twitterable' => array(
+		'on' => 'create'
+	));
+}</code></pre>
+
+In this example, everytime a Post is created, a new status will be posted on our Twitter account.
+
+h3. 2.3. Create a <code>Model::twitterStatus()</code> method
+
+The Twitterable Behavior will look for a twitterStatus() method in the attached Model. This method must return the status to be posted. Keep in mind that a status on Twitter is limited to 140 characters.
+
+The plugin includes a convenient method to format a status, <code>twitterFormatStatus()</code>. This method takes 3 parameters:
+
+* <code>$message</code>: required text of the status ;
+* <code>$url</code>: optionnal url, to the full post for example. Will be shortened (we choosed the free url shortener service http://is.gd) ;
+* <code>$ending</code>: optionnal ending string if the status text is too long. Defaults to '...'.
+
+*Full example:*
+
+<pre><code>class Post extends AppModel {
+	var $actsAs = array('Twitter.Twitterable' => array(
+		'on' => 'create'
+	));
+	
+	function twitterStatus() {
+		$title = $this->data['Post']['title'];
+		$url   = Router::url(array('controller' => 'posts', 'action' => 'view', $this->id), true);
+		
+		return $this->twitterFormatStatus($title, $url, '...');
+	}
+}</code></pre>
+
+The status will be the post's title (cut and ended by '...' if too long), followed by a space and the url in a shortened format.
+
+h2. 3. Other Twitter interactions
+
+Since we are using a full featured Twitter DataSource, we can access all the other Twitter API methods. Please refer to the Twitter API to know the available methods.
+
+Note that we don't need the plugin's Behavior to access the DataSource methods, we only need to call the Twitter DataSource from the plugin. 
+
+*Example*: we look for 'cakephp' on Twitter and display the results :
+
+<pre><code>class SomethingsController extends AppController {
+	function index() {
+		$ds = ConnectionManager::getDataSource('twitter');
+	
+		$results = $ds->search(array('q' => 'cakephp');
+        
+		debug($results);
+	}
+}</code></pre>
