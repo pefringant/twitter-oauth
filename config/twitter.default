@@ -6,7 +6,7 @@
  */
 class TWITTER_CONFIG {
 	var $twitter = array(
-		'datasource'         => 'twitter_oauth',
+		'datasource'         => 'Twitter.TwitterOauthSource',
 		'consumer_key'       => '',
 		'consumer_secret'    => '',
 		'oauth_token'        => '',
