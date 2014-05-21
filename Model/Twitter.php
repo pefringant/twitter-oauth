@@ -5,22 +5,22 @@
  *
  * Daniel Hofstetter
  * @link http://code.42dh.com/oauth/
- * 
+ *
  * Michael "MiDri" Riddle
  * @link http://bakery.cakephp.org/articles/view/twitter-datasource
- * 
+ *
  * Alexandru Ciobanu
  * @link http://github.com/ics/twitter_datasource
- * 
+ *
  * Licensed under The MIT License
  * Redistributions of files must retain the above copyright notice.
  */
 class Twitter extends TwitterAppModel {
-	
+
 	var $name = 'Twitter';
-	
+
 	var $useDbConfig = 'twitter';
-	
+
 /**
  * Constructor
  */
@@ -29,17 +29,13 @@ class Twitter extends TwitterAppModel {
 		App::import(array(
 			'type' => 'File',
 			'name' => 'Twitter.TWITTER_CONFIG',
-			'file' => 'config'.DS.'twitter.php'
+			'file' => App::pluginPath('Twitter').'Config'.DS.'twitter.php'
 		));
 
 		$config =& new TWITTER_CONFIG();
-		
-		// Datasource
-		App::import('Datasource', 'Twitter.TwitterOauthSource');
-		
 		ConnectionManager::create('twitter', $config->twitter);
 	}
-	
+
 /**
  * Posts a new status on Twitter
  *
@@ -47,10 +43,10 @@ class Twitter extends TwitterAppModel {
  */
 	function postStatus($status = '') {
 		$ds = ConnectionManager::getDataSource('twitter');
-		
+
 		$ds->statuses_update(array('status' => $status));
 	}
-	
+
 /**
  * Calls a URL shortening service
  * http://is.gd
@@ -60,15 +56,15 @@ class Twitter extends TwitterAppModel {
  */
 	function shorten($url) {
 		App::import('Core', 'HttpSocket');
-		
+
 		$socket =& new HttpSocket();
-		
+
 		$request = sprintf('http://is.gd/api.php?longurl=%s', rawurlencode($url));
-		
+
 		return $socket->get($request);
 	}
-	
-	
+
+
 /**
  * Formats a Twitter status
  *
@@ -79,24 +75,24 @@ class Twitter extends TwitterAppModel {
  */
 	function formatStatus($message, $url = null, $ending = '...') {
 		App::import('Core', 'Multibyte');
-		
+
 		$max = 140;
-		
+
 		if ($url) {
 			$url = $this->shorten($url);
-			
+
 			$max -= mb_strlen($url) + 1;
 		}
-		
+
 		if (mb_strlen($message) > $max) {
 			$message  = mb_substr($message, 0, $max - mb_strlen($ending));
 			$message .= $ending;
 		}
-		
+
 		if (!$url) {
 			return $message;
 		}
-		
+
 		return sprintf('%s %s', $message, $url);
 	}
 }

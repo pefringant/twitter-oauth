@@ -2,36 +2,37 @@
 /*
  * Twitter Oauth Datasource
  * Adapted from the work of :
- * 
+ *
  * Daniel Hofstetter
  * @link http://code.42dh.com/oauth/
- * 
+ *
  * Michael "MiDri" Riddle
  * @link http://bakery.cakephp.org/articles/view/twitter-datasource
- * 
+ *
  * Alexandru Ciobanu
  * @link http://github.com/ics/twitter_datasource
- * 
+ *
  * Licensed under The MIT License
  * Redistributions of files must retain the above copyright notice.
  */
-App::import('Core',array('Xml','HttpSocket'));
+App::import('Core', 'Xml');
+App::import('Network', 'Http/HttpSocket');
 App::import('Vendor','Twitter.OAuth', array('file' => 'OAuth'.DS.'OAuth.php'));
 
 class TwitterOauthSource extends DataSource {
-	
+
 	public $config = array();
-	
+
 	public $HttpSocket = null;
-	
+
 	function __construct($config = array()) {
 		$this->HttpSocket =& new HttpSocket();
 		$this->config = $config;
 	}
-	
+
 /**
  * Twitter API Wrappers
- * 
+ *
  * @link http://dev.twitter.com/doc
  */
 
@@ -286,17 +287,17 @@ class TwitterOauthSource extends DataSource {
 		parse_str($return,$output);
 		return $output;
 	}
-	
+
 	function oauth_authorize($params=array()) {
 		$url = 'http://twitter.com/oauth/authorize';
 		return $this->__query($url,$params,'get');
 	}
-	
+
 	function oauth_authenticate($params=array()) {
 		$url = 'http://twitter.com/oauth/authenticate';
 		return $this->__query($url,$params,'get');
 	}
-	
+
 	function oauth_access_token() {
 		$url = 'http://twitter.com/oauth/access_token';
 		$request = $this->__createRequest('post',$url,new OAuthToken($this->config['oauth_token'],$this->config['oauth_token_secret']));
@@ -304,7 +305,7 @@ class TwitterOauthSource extends DataSource {
 		parse_str($return,$output);
 		return $output;
 	}
-	
+
 /**
  * PRIVATE METHODS
  */
@@ -319,22 +320,22 @@ class TwitterOauthSource extends DataSource {
 		}
 		return json_decode($response);
 	}
-	
+
 	private function __createRequest($httpMethod,$url,$token,array $params) {
 		$consumer = $this->__createConsumer();
 		$request = OAuthRequest::from_consumer_and_token($consumer,$token,$httpMethod,$url,$params);
 		$request->sign_request(new OauthSignatureMethod_HMAC_SHA1(),$consumer,$token);
 		return $request;
 	}
-	
+
 	private function __createConsumer() {
 		return new OAuthConsumer($this->config['consumer_key'], $this->config['consumer_secret']);
 	}
-	
+
 	private function __getRequest($url) {
 		return $this->HttpSocket->get($url);
 	}
-	
+
 	private function __postRequest($url,$data) {
 		return $this->HttpSocket->post($url,$data);
 	}
